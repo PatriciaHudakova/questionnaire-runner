@@ -133,7 +133,7 @@ func TestDatabase_GetOverallAverageFromDB(t *testing.T) {
 	}
 
 	// Check that we are able to retrieve this average from table
-	average, err := DB.GetOverallAverageFromDB()
+	average, err := DB.GetPersistedParams()
 	assert.Nil(t, err)
 	assert.Equal(t, 65, average)
 }
@@ -154,7 +154,7 @@ func TestDatabase_MakeCurrentRatingTheAverage(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Check the correct number has been populated
-	average, err := DB.GetOverallAverageFromDB()
+	average, err := DB.GetPersistedParams()
 	assert.Nil(t, err)
 	assert.Equal(t, 40, average)
 }
@@ -179,7 +179,7 @@ func TestDatabase_UpdateAverage(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Check the replacement has been successful
-	average, err := DB.GetOverallAverageFromDB()
+	average, err := DB.GetPersistedParams()
 	assert.Nil(t, err)
 	assert.Equal(t, 79, average)
 }

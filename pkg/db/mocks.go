@@ -40,7 +40,7 @@ func (m *MockClient) GetAllRows() (*sql.Rows, error) {
 }
 
 // MakeCurrentRatingTheAverage mock.
-func (m *MockClient) MakeCurrentRatingTheAverage(currentRating string) error {
+func (m *MockClient) CreateANewEntry(currentRating string) error {
 	return m.MakeCurrentRatingTheAverageFn(currentRating)
 }
 

@@ -46,14 +46,14 @@ func (db *Database) GetAllRows() (*sql.Rows, error) {
 	return numberOfRows, nil
 }
 
-// MakeCurrentRatingTheAverage makes the current run's rating the new overall average
-func (db *Database) MakeCurrentRatingTheAverage(currentRating string) error {
-	stmt, err := db.Conn.Prepare("INSERT INTO averages(uuid, overallAverage) values(?,?);")
+// CreateANewEntry creates a new entry based on the current run's values
+func (db *Database) CreateANewEntry(numOfQuestions, positives int) error {
+	stmt, err := db.Conn.Prepare("INSERT INTO averages(questions, positives) values(?,?);")
 	if err != nil {
 		return err
 	}
 
-	_, err = stmt.Exec(1, currentRating)
+	_, err = stmt.Exec(numOfQuestions, positives)
 	if err != nil {
 		return err
 	}
@@ -61,35 +61,36 @@ func (db *Database) MakeCurrentRatingTheAverage(currentRating string) error {
 	return nil
 }
 
-// GetOverallAverageFromDB retrieves the stored overall average from db
-func (db *Database) GetOverallAverageFromDB() (int, error) {
-	var average int
+// GetPersistedParams retrieves the persisted entries from db
+func (db *Database) GetPersistedParams() (int, int, error) {
+	var questions, positives int
 
-	rows, err := db.Conn.Query("SELECT overallAverage FROM averages;")
+	rows, err := db.Conn.Query("SELECT questions, positives FROM averages;")
 	if err != nil {
 		log.Fatal(err)
-		return 0, err
+		return 0, 0, err
 	}
 
 	for rows.Next() {
-		if err = rows.Scan(&average); err != nil {
+		if err = rows.Scan(&questions, &positives); err != nil {
 			log.Fatal(err)
-			return 0, err
+			return 0, 0, err
 		}
 	}
 	rows.Close()
 
-	return average, nil
+	return questions, positives, nil
 }
 
 // UpdateAverage updates the table with new average
-func (db *Database) UpdateAverage(newAverage int) error {
+func (db *Database) UpdateAverage(totalQuestions, totalPositives int) error {
 	// Replace the old average with new average
-	stmt, err := db.Conn.Prepare("UPDATE averages SET overallAverage=? where uuid=?")
+	stmt, err := db.Conn.Prepare("UPDATE averages SET questions=?, positives=? where uuid=?")
 	if err != nil {
 		return err
 	}
-	_, err = stmt.Exec(newAverage, 1)
+
+	_, err = stmt.Exec(totalQuestions, totalPositives, 1)
 	if err != nil {
 		return err
 	}
