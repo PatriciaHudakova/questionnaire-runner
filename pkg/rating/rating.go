@@ -67,24 +67,15 @@ func CalculateAverageRating(db db.IDatabase, currentRating string, currPositives
 	if err != nil {
 		return "", fmt.Errorf("unable to retrieve params: %v", err)
 	}
-	fmt.Printf("dbPositives: %v", dbPositives)
-	fmt.Println("----")
-	fmt.Printf("dbQuestions: %v", dbQuestions)
-	fmt.Println("----")
 
 	totalQuestions := dbQuestions + 5
 	totalPositives := dbPositives + currPositives
-	fmt.Printf("totalQuestions: %v", totalQuestions)
-	fmt.Println("----")
-	fmt.Printf("totalPositives: %v", totalPositives)
-	fmt.Println("----")
 
 	// Calculate the new average
 	newAverage := 100 * (float64(totalPositives) / float64(totalQuestions))
-	fmt.Println(newAverage)
 
 	// Update the database with new totals
-	if err = db.UpdateAverage(totalQuestions, totalPositives); err != nil {
+	if err = db.UpdateDatabaseParams(totalQuestions, totalPositives); err != nil {
 		return "", fmt.Errorf("unable to update average: %v", err)
 	}
 

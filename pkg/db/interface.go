@@ -7,6 +7,6 @@ type IDatabase interface {
 	GetAllRows() (*sql.Rows, error)
 	CreateANewEntry(numOfQuestions, positives int) error
 	GetPersistedParams() (int, int, error)
-	UpdateAverage(totalQuestions, totalPositives int) error
+	UpdateDatabaseParams(totalQuestions, totalPositives int) error
 	IsEmpty(rows *sql.Rows) bool
 }

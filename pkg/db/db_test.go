@@ -19,7 +19,7 @@ func setup(testConn *sql.DB) {
 	}
 
 	// Create the new averages table
-	query, err = testConn.Prepare("CREATE TABLE averages (uuid INTEGER, overallAverage INTEGER);")
+	query, err = testConn.Prepare("CREATE TABLE averages (uuid INTEGER PRIMARY KEY, questions INTEGER, positives INTEGER);")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -87,11 +87,11 @@ func TestDatabase_GetAllRows(t *testing.T) {
 	assert.NotNil(t, rows)
 
 	// Add an entry into the table
-	entry, err := DB.Conn.Prepare("INSERT INTO averages (uuid, overallAverage) values(?,?)")
+	entry, err := DB.Conn.Prepare("INSERT INTO averages (questions, positives) values(?,?)")
 	if err != nil {
 		t.Fatal()
 	}
-	res, err := entry.Exec("1", 40)
+	res, err := entry.Exec(5, 3)
 	if err != nil {
 		t.Fatal()
 	}
@@ -110,7 +110,7 @@ func TestDatabase_GetAllRows(t *testing.T) {
 	assert.NotNil(t, rows)
 }
 
-func TestDatabase_GetOverallAverageFromDB(t *testing.T) {
+func TestDatabase_GetPersistedParams(t *testing.T) {
 	testConn, _ := sql.Open(DriverName, DataSourceName)
 	defer testConn.Close()
 
@@ -122,23 +122,24 @@ func TestDatabase_GetOverallAverageFromDB(t *testing.T) {
 	defer teardown(DB.Conn)
 
 	// Insert a mock average value into the table
-	stmt, err := DB.Conn.Prepare("INSERT INTO averages(uuid, overallAverage) values(?,?);")
+	stmt, err := DB.Conn.Prepare("INSERT INTO averages(questions, positives) values(?,?);")
 	if err != nil {
 		t.Fatal()
 	}
 
-	_, err = stmt.Exec(1, 65)
+	_, err = stmt.Exec(10, 8)
 	if err != nil {
 		t.Fatal()
 	}
 
 	// Check that we are able to retrieve this average from table
-	average, err := DB.GetPersistedParams()
+	questions, positives, err := DB.GetPersistedParams()
 	assert.Nil(t, err)
-	assert.Equal(t, 65, average)
+	assert.Equal(t, 10, questions)
+	assert.Equal(t, 8, positives)
 }
 
-func TestDatabase_MakeCurrentRatingTheAverage(t *testing.T) {
+func TestDatabase_CreateANewEntry(t *testing.T) {
 	testConn, _ := sql.Open(DriverName, DataSourceName)
 	defer testConn.Close()
 
@@ -150,16 +151,17 @@ func TestDatabase_MakeCurrentRatingTheAverage(t *testing.T) {
 	defer teardown(DB.Conn)
 
 	// Execution of query should not throw an error
-	err := DB.MakeCurrentRatingTheAverage("40")
+	err := DB.CreateANewEntry(5, 3)
 	assert.Nil(t, err)
 
 	// Check the correct number has been populated
-	average, err := DB.GetPersistedParams()
+	questions, positives, err := DB.GetPersistedParams()
 	assert.Nil(t, err)
-	assert.Equal(t, 40, average)
+	assert.Equal(t, 5, questions)
+	assert.Equal(t, 3, positives)
 }
 
-func TestDatabase_UpdateAverage(t *testing.T) {
+func TestDatabase_UpdateDatabaseParams(t *testing.T) {
 	testConn, _ := sql.Open(DriverName, DataSourceName)
 	defer testConn.Close()
 
@@ -170,16 +172,17 @@ func TestDatabase_UpdateAverage(t *testing.T) {
 	// Cleanup
 	defer teardown(DB.Conn)
 
-	// Insert a mock old average
-	err := DB.MakeCurrentRatingTheAverage("40")
+	// Insert a mock existing entry
+	err := DB.CreateANewEntry(5, 3)
 	assert.Nil(t, err)
 
-	// Check the correct number has been populated
-	err = DB.UpdateAverage(79)
+	// Update the mock entry with another entry
+	err = DB.UpdateDatabaseParams(10, 4)
 	assert.Nil(t, err)
 
 	// Check the replacement has been successful
-	average, err := DB.GetPersistedParams()
+	questions, positives, err := DB.GetPersistedParams()
 	assert.Nil(t, err)
-	assert.Equal(t, 79, average)
+	assert.Equal(t, 10, questions)
+	assert.Equal(t, 4, positives)
 }

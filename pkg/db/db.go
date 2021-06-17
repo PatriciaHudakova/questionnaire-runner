@@ -82,8 +82,8 @@ func (db *Database) GetPersistedParams() (int, int, error) {
 	return questions, positives, nil
 }
 
-// UpdateAverage updates the table with new average
-func (db *Database) UpdateAverage(totalQuestions, totalPositives int) error {
+// UpdateDatabaseParams updates the table with new average
+func (db *Database) UpdateDatabaseParams(totalQuestions, totalPositives int) error {
 	// Replace the old average with new average
 	stmt, err := db.Conn.Prepare("UPDATE averages SET questions=?, positives=? where uuid=?")
 	if err != nil {
