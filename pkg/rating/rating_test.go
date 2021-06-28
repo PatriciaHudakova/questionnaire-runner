@@ -101,7 +101,7 @@ func TestCalculateImmediateRating(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := CalculateImmediateRating(tt.args.params); got != tt.want {
+			if got, _ := CalculateImmediateRating(tt.args.params); got != tt.want {
 				t.Errorf("CalculateImmediateRating() = %v, want %v", got, tt.want)
 			}
 		})
@@ -112,6 +112,7 @@ func TestCalculateAverageRating(t *testing.T) {
 	type args struct {
 		db            db.IDatabase
 		currentRating string
+		currPositives int
 	}
 	tests := []struct {
 		name    string
@@ -128,11 +129,12 @@ func TestCalculateAverageRating(t *testing.T) {
 					IsEmptyFn: func(rows *sql.Rows) bool {
 						return true
 					},
-					MakeCurrentRatingTheAverageFn: func(currentRating string) error {
+					CreateANewEntryFn: func(dbQuestions, dbPositives int) error {
 						return nil
 					},
 				},
 				currentRating: "50",
+				currPositives: 2,
 			},
 			wantErr: false,
 		},
@@ -145,20 +147,21 @@ func TestCalculateAverageRating(t *testing.T) {
 					IsEmptyFn: func(rows *sql.Rows) bool {
 						return false
 					},
-					GetOverallAverageFromDBFn: func() (int, error) {
-						return 40, nil
+					GetPersistedParamsFn: func() (int, int, error) {
+						return 40, 2, nil
 					},
-					UpdateAverageFn: func(newAverage int) error {
+					UpdateAverageFn: func(totalQuestions, totalPositives int) error {
 						return nil
 					}},
 				currentRating: "50",
+				currPositives: 2,
 			},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := CalculateAverageRating(tt.args.db, tt.args.currentRating)
+			got, err := CalculateAverageRating(tt.args.db, tt.args.currentRating, tt.args.currPositives)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CalculateAverageRating() error = %v, wantErr %v", err, tt.wantErr)
 				return

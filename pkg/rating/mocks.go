@@ -6,14 +6,14 @@ import (
 	"skillQuiz/pkg/db"
 )
 
-func mockCalculateImmediateRating(answers []pkg.Question) string {
-	return "40"
+func mockCalculateImmediateRating(answers []pkg.Question) (string, int) {
+	return "40", 0
 }
 
-func mockCalculateAverageRating(db db.IDatabase, currentRating string) (string, error) {
+func mockCalculateAverageRating(db db.IDatabase, currentRating string, currPositives int) (string, error) {
 	return "60", nil
 }
 
-func mockCalculateAverageRatingErr(db db.IDatabase, currentRating string) (string, error) {
+func mockCalculateAverageRatingErr(db db.IDatabase, currentRating string, currPositives int) (string, error) {
 	return "", errors.New("test error")
 }
